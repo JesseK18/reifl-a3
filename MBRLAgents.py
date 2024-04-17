@@ -18,15 +18,27 @@ class DynaAgent:
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.Q_sa = np.zeros((n_states,n_actions))
-        # TO DO: Initialize count tables, and reward sum tables. 
+        # TO DO: Initialize count tables, and reward sum tables.
+        self.means = np.zeros((n_states,n_actions))
+        self.transition_counts = np.zeros((n_states,n_actions,n_states))
+        self.reward_sums = np.zeros((n_states,n_actions,n_states))
         
     def select_action(self, s, epsilon):
         # TO DO: Change this to e-greedy action selection
-        a = np.random.randint(0,self.n_actions) # Replace this with correct action selection
+        if np.random.rand() > epsilon:
+            a = np.argmax(self.Q_sa[s])
+        else:
+            a = np.random.choice(self.n_actions)
         return a
         
     def update(self,s,a,r,done,s_next,n_planning_updates):
         # TO DO: Add Dyna update
+        self.transition_counts[s][a][s_next] += 1
+        self.reward_sums[s][a][s_next] += r
+        for k in n_planning_updates:
+            prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
+            r_hat = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
+
         pass
 
     def evaluate(self,eval_env,n_eval_episodes=30, max_episode_length=100):
