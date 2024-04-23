@@ -35,10 +35,19 @@ class DynaAgent:
         # TO DO: Add Dyna update
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
-        for k in n_planning_updates:
-            prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
-            r_hat = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
+        for k in range(n_planning_updates):
+            s = np.random.choice(self.n_states)
+            a = np.random.choice(self.n_actions)
+            while np.sum(self.transition_counts[s][a]) == 0:
+                s = np.random.choice(self.n_states)
+                a = np.random.choice(self.n_actions)
 
+            prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
+            s_next = np.random.choice(self.n_states, p=prob_transition)
+            r = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
+
+
+            self.Q_sa[s,a] += self.learning_rate * (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
         pass
 
     def evaluate(self,eval_env,n_eval_episodes=30, max_episode_length=100):
