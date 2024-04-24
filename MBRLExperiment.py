@@ -22,14 +22,14 @@ def experiment():
     epsilon=0.1
     
     wind_proportions=[0.9,1.0]
-    n_planning_updatess = [1,3,5] 
+    n_planning_updates = [1,3,5]
     
     # IMPLEMENT YOUR EXPERIMENT HERE
     all_evals = []
-    for planning_update in n_planning_updatess:
+    for planning_update in n_planning_updates:
         rep_evals = []
         for n in range(n_repetitions):
-            WG_env = WindyGridworld()
+            WG_env = WindyGridworld(wind_proportion=wind_proportions[0])
             Dyna_agent = DynaAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
             eval = Dyna_run_repetitions(Dyna_agent, WG_env, WG_env, n_timesteps, eval_interval, epsilon, planning_update)
             rep_evals.append(eval)
@@ -41,8 +41,9 @@ def experiment():
     plt.figure()
     for i in range(len(all_avg_evals)):
         smoothed_eval = smooth(all_avg_evals[i], 8)  # Adjust window_size as needed
-        plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"{n_planning_updatess} planning updates")
+        plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"{n_planning_updates[i]} planning updates")
     plt.legend()
+    plt.savefig(f"Dyna plot with {wind_proportions[0]} as wind proportion")
     plt.show()
 
 
