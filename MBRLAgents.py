@@ -36,7 +36,7 @@ class DynaAgent:
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
         if not done:
-            self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
+            self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
 
         for k in range(n_planning_updates):
             s = np.random.choice(self.n_states)
@@ -50,7 +50,7 @@ class DynaAgent:
             r = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
 
 
-            self.Q_sa[s,a] += self.learning_rate * (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
+            self.Q_sa[s,a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
         pass
 
     def evaluate(self,eval_env,n_eval_episodes=30, max_episode_length=100):
