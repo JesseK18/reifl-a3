@@ -35,6 +35,9 @@ class DynaAgent:
         # TO DO: Add Dyna update
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
+        if not done:
+            self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
+
         for k in range(n_planning_updates):
             s = np.random.choice(self.n_states)
             a = np.random.choice(self.n_actions)
@@ -153,9 +156,9 @@ def test():
                        step_pause=step_pause)
             
         # Ask user for manual or continuous execution
-        if not continuous_mode:
-            key_input = input("Press 'Enter' to execute next step, press 'c' to run full algorithm")
-            continuous_mode = True if key_input == 'c' else False
+        #if not continuous_mode:
+          #  key_input = input("Press 'Enter' to execute next step, press 'c' to run full algorithm")
+          #  continuous_mode = True if key_input == 'c' else False
 
         # Reset environment when terminated
         if done:
