@@ -22,7 +22,7 @@ def experiment():
     epsilon=0.1
     
     wind_proportions=[0.9,1.0]
-    n_planning_updates = [1,3,5]
+    n_planning_updates = [0,1,3,5]
     
     # IMPLEMENT YOUR EXPERIMENT HERE
     all_evals = []
@@ -41,16 +41,21 @@ def experiment():
     plt.figure()
     for i in range(len(all_avg_evals)):
         smoothed_eval = smooth(all_avg_evals[i], 8)  # Adjust window_size as needed
-        plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"{n_planning_updates[i]} planning updates")
+        if n_planning_updates[i] == 0:
+            plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"Q-learning baseline")
+        else:
+            plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"{n_planning_updates[i]} planning updates")
     plt.legend()
-    plt.savefig(f"Dyna plot with {wind_proportions[0]} as wind proportion")
+    plt.xlabel("number of intervals")
+    plt.ylabel("reward")
+    plt.savefig(f"Dyna_wind_proportion_{wind_proportions[0]}.png")
     plt.show()
 
 
 def Dyna_run_repetitions(agent, env, eval_env, n_timesteps, eval_interval, epsilon, planning_update):
     eval_list = []
     s = env.reset()
-    for i in range(1, n_timesteps):
+    for i in range(n_timesteps):
         if i % eval_interval == 0:
             eval = agent.evaluate(eval_env)
             eval_list.append(eval)
