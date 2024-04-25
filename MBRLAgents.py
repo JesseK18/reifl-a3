@@ -84,7 +84,10 @@ class PrioritizedSweepingAgent:
         
     def select_action(self, s, epsilon):
         # TO DO: Change this to e-greedy action selection
-        a = np.random.randint(0,self.n_actions) # Replace this with correct action selection
+        if np.random.rand() > epsilon:
+            a = np.argmax(self.Q_sa[s])
+        else:
+            a = np.random.choice(self.n_actions)
         return a
         
     def update(self,s,a,r,done,s_next,n_planning_updates):
@@ -96,6 +99,21 @@ class PrioritizedSweepingAgent:
         # self.queue.put((-p,(s,a))) 
         # Retrieve the top (s,a) from the queue
         # _,(s,a) = self.queue.get() # get the top (s,a) for the queue
+        self.transition_counts[s][a][s_next] += 1
+        self.reward_sums[s][a][s_next] += r
+        prioriri = (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
+        if prioriri > self.priority_cutoff:
+            self.queue.put((-prioriri,(s,a)))
+        for k in range(n_planning_updates):
+            _,(s,a) = self.queue.get()
+            prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
+            s_next = np.random.choice(self.n_states, p=prob_transition)
+            self.Q_sa[s,a] += self.learning_rate * (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
+            #for state in possibly vistited eralier state: 
+            #   r_bar = (((self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next])))
+            #   prioriri = r_bar + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s_hat,a_hat]
+            #   if prioriri > self.priority_cutoff:
+            #       self.queue.put((-prioriri,(s,a)))   
         pass
 
     def evaluate(self,eval_env,n_eval_episodes=30, max_episode_length=100):
@@ -121,7 +139,7 @@ def test():
     gamma = 1.0
 
     # Algorithm parameters
-    policy = 'dyna' # or 'ps' 
+    policy = 'ps' # or 'ps' 'dyna
     epsilon = 0.1
     learning_rate = 0.2
     n_planning_updates = 3
