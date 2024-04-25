@@ -37,7 +37,7 @@ class DynaAgent:
         self.reward_sums[s][a][s_next] += r
         if not done:
             self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
-
+        #print(self.transition_counts)
         for k in range(n_planning_updates):
             s = np.random.choice(self.n_states)
             a = np.random.choice(self.n_actions)
@@ -81,6 +81,10 @@ class PrioritizedSweepingAgent:
         
         self.Q_sa = np.zeros((n_states,n_actions))
         # TO DO: Initialize count tables, reward sum tables, priority queue
+        self.means = np.zeros((n_states,n_actions))
+        self.transition_counts = np.zeros((n_states,n_actions,n_states))
+        self.reward_sums = np.zeros((n_states,n_actions,n_states))
+        self.queue = PriorityQueue(maxsize=max_queue_size)
         
     def select_action(self, s, epsilon):
         # TO DO: Change this to e-greedy action selection
@@ -101,19 +105,30 @@ class PrioritizedSweepingAgent:
         # _,(s,a) = self.queue.get() # get the top (s,a) for the queue
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
-        prioriri = (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
+        prioriri =abs((r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a]))
         if prioriri > self.priority_cutoff:
             self.queue.put((-prioriri,(s,a)))
+        #print(self.queue.qsize())
         for k in range(n_planning_updates):
+            if self.queue.empty():
+                break
             _,(s,a) = self.queue.get()
             prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
             s_next = np.random.choice(self.n_states, p=prob_transition)
+            r = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
             self.Q_sa[s,a] += self.learning_rate * (r + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a])
-            #for state in possibly vistited eralier state: 
-            #   r_bar = (((self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next])))
-            #   prioriri = r_bar + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s_hat,a_hat]
-            #   if prioriri > self.priority_cutoff:
-            #       self.queue.put((-prioriri,(s,a)))   
+            # find previous states and actions that lead to s_next
+            indices = np.where(self.transition_counts[:,:,s_next] > 0)
+            p_state_action_pairs = list(zip(indices[0], indices[1]))
+            for p_state, p_action in p_state_action_pairs: 
+                #print(f"State: {p_state}, Action: {p_action}")
+                if self.transition_counts[p_state][p_action][s]==0: 
+                    continue
+                r_bar = (self.reward_sums[p_state][p_action][s]/self.transition_counts[p_state][p_action][s])
+                prioriri1 = abs(r_bar + self.gamma * np.argmax(self.Q_sa[s]) - self.Q_sa[p_state,p_action])
+                if prioriri1 > self.priority_cutoff:
+                    self.queue.put((-prioriri1,(s,a)))  
+        print("Kaahrizmah, baby")
         pass
 
     def evaluate(self,eval_env,n_eval_episodes=30, max_episode_length=100):
@@ -135,7 +150,7 @@ class PrioritizedSweepingAgent:
 
 def test():
 
-    n_timesteps = 10001
+    n_timesteps = 10001 #10001
     gamma = 1.0
 
     # Algorithm parameters
@@ -145,7 +160,7 @@ def test():
     n_planning_updates = 3
 
     # Plotting parameters
-    plot = True
+    plot = True #True  
     plot_optimal_policy = True
     step_pause = 0.0001
     
@@ -173,10 +188,10 @@ def test():
             env.render(Q_sa=pi.Q_sa,plot_optimal_policy=plot_optimal_policy,
                        step_pause=step_pause)
             
-        # Ask user for manual or continuous execution
-        #if not continuous_mode:
-          #  key_input = input("Press 'Enter' to execute next step, press 'c' to run full algorithm")
-          #  continuous_mode = True if key_input == 'c' else False
+        #Ask user for manual or continuous execution
+        # if not continuous_mode:
+        #    key_input = input("Press 'Enter' to execute next step, press 'c' to run full algorithm")
+        #    continuous_mode = True if key_input == 'c' else False
 
         # Reset environment when terminated
         if done:
