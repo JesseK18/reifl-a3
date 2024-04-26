@@ -43,7 +43,6 @@ def experiment():
     for i in range(len(all_avg_evals)):
         smoothed_eval = smooth(all_avg_evals[i], 8)  # Adjust window_size as needed
         if n_planning_updates[i] == 0:
-            print(all_evals[0], smoothed_eval)
             plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"Q-learning baseline")
         else:
             plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"{n_planning_updates[i]} planning updates")

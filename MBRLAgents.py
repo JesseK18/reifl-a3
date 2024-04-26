@@ -37,8 +37,8 @@ class DynaAgent:
         # TO DO: Add Dyna update
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
-        if not done:
-            self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
+        #if not done:
+        self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
 
         for k in range(n_planning_updates):
             s = np.random.choice(self.n_states)
