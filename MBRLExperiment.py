@@ -29,9 +29,10 @@ def experiment():
     for planning_update in n_planning_updates:
         rep_evals = []
         for n in range(n_repetitions):
-            WG_env = WindyGridworld(wind_proportion=wind_proportions[0])
-            Dyna_agent = DynaAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
-            eval = Dyna_run_repetitions(Dyna_agent, WG_env, WG_env, n_timesteps, eval_interval, epsilon, planning_update)
+            WG_env = WindyGridworld(wind_proportion=wind_proportions[1])
+            #Dyna_agent = DynaAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
+            PS_agent = PrioritizedSweepingAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
+            eval = run_repetitions(PS_agent, WG_env, WG_env, n_timesteps, eval_interval, epsilon, planning_update)
             rep_evals.append(eval)
         all_evals.append(rep_evals)
     all_avg_evals = []
@@ -42,17 +43,18 @@ def experiment():
     for i in range(len(all_avg_evals)):
         smoothed_eval = smooth(all_avg_evals[i], 8)  # Adjust window_size as needed
         if n_planning_updates[i] == 0:
+            print(all_evals[0], smoothed_eval)
             plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"Q-learning baseline")
         else:
             plt.plot(range(1, len(all_avg_evals[i]) + 1), smoothed_eval, label=f"{n_planning_updates[i]} planning updates")
     plt.legend()
     plt.xlabel("number of intervals")
     plt.ylabel("reward")
-    plt.savefig(f"Dyna_wind_proportion_{wind_proportions[0]}.png")
+    plt.savefig(f"PS_wind_proportion_{wind_proportions[1]}.png")
     plt.show()
 
 
-def Dyna_run_repetitions(agent, env, eval_env, n_timesteps, eval_interval, epsilon, planning_update):
+def run_repetitions(agent, env, eval_env, n_timesteps, eval_interval, epsilon, planning_update):
     eval_list = []
     s = env.reset()
     for i in range(n_timesteps):

@@ -39,7 +39,7 @@ class DynaAgent:
         self.reward_sums[s][a][s_next] += r
         if not done:
             self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
-        #print(self.transition_counts)
+
         for k in range(n_planning_updates):
             s = np.random.choice(self.n_states)
             a = np.random.choice(self.n_actions)
@@ -47,13 +47,9 @@ class DynaAgent:
                 s = np.random.choice(self.n_states)
                 a = np.random.choice(self.n_actions)
 
-
             prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
             s_next = np.random.choice(self.n_states, p=prob_transition)
             r = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
-
-
-
 
             self.Q_sa[s,a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
         pass
@@ -155,7 +151,7 @@ class PrioritizedSweepingAgent:
                 break
             _, (s, a) = self.queue.get()
             prob_trans= self.transition_counts[s][a] / (np.sum(self.transition_counts[s][a]))
-            s_next = np.random.choice(self.n_actions, p=prob_trans)
+            s_next = np.random.choice(self.n_states, p=prob_trans)
             r_bar = self.reward_sums[s][a][s_next] / self.transition_counts[s][a][s_next]
             r = r_bar
             self.Q_sa[s][a] = self.Q_sa[s][a] + self.learning_rate*(r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s][a])
@@ -248,6 +244,4 @@ def test():
    
 if __name__ == '__main__':
     test()
-
-
 
