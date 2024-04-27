@@ -29,10 +29,13 @@ def experiment():
     for planning_update in n_planning_updates:
         rep_evals = []
         for n in range(n_repetitions):
-            WG_env = WindyGridworld(wind_proportion=wind_proportions[1])
-            #Dyna_agent = DynaAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
-            PS_agent = PrioritizedSweepingAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
-            eval = run_repetitions(PS_agent, WG_env, WG_env, n_timesteps, eval_interval, epsilon, planning_update)
+            WG_env = WindyGridworld(wind_proportion=wind_proportions[0])
+            if planning_update == 0:
+                Dyna_agent = DynaAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
+                eval = run_repetitions(Dyna_agent, WG_env, WG_env, n_timesteps, eval_interval, epsilon, planning_update)
+            else:
+                PS_agent = PrioritizedSweepingAgent(WG_env.n_states, WG_env.n_actions, learning_rate, gamma)
+                eval = run_repetitions(PS_agent, WG_env, WG_env, n_timesteps, eval_interval, epsilon, planning_update)
             rep_evals.append(eval)
         all_evals.append(rep_evals)
     all_avg_evals = []
@@ -49,7 +52,7 @@ def experiment():
     plt.legend()
     plt.xlabel("number of intervals")
     plt.ylabel("reward")
-    plt.savefig(f"PS_wind_proportion_{wind_proportions[1]}.png")
+    plt.savefig(f"PS_wind_proportion_{wind_proportions[0]}.png")
     plt.show()
 
 
