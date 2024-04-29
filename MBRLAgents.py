@@ -109,64 +109,31 @@ class PrioritizedSweepingAgent:
         # Retrieve the top (s,a) from the queue
         # _,(s,a) = self.queue.get() # get the top (s,a) for the queue
         
-        # not working yet
-        # self.transition_counts[s][a][s_next] += 1
-        # self.reward_sums[s][a][s_next] += r
-        # prioriri =abs(r + (self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s,a]))
-        # if prioriri > self.priority_cutoff:
-        #     self.queue.put((-prioriri,(s,a)))
-        # #print(self.queue.qsize())
-        # for k in range(n_planning_updates):
-        #     if self.queue.empty():
-        #         break
-        #     _,(s_q,a_q) = self.queue.get()
-        #     prob_transition = (self.transition_counts[s][a])/(np.sum(self.transition_counts[s][a]))
-        #     s_next = np.random.choice(self.n_states, p=prob_transition)
-        #     r_new = self.reward_sums[s][a][s_next]/self.transition_counts[s][a][s_next]
-        #     self.Q_sa[s_q,a_q] += self.learning_rate * (r_new + self.gamma * np.argmax(self.Q_sa[s_next]) - self.Q_sa[s_q,a_q])
-        #     # find previous states and actions that lead to s_next
-        #     indices = np.where(self.transition_counts[:,:,s_q] > 0)
-        #     p_state_action_pairs = list(zip(indices[0], indices[1]))
-        #     for p_state, p_action in p_state_action_pairs:
-        #         #print(f"State: {p_state}, Action: {p_action}")
-        #         # if self.transition_counts[p_state][p_action][s_q]==0:
-        #         #     counter+=1
-        #         #     print("warnign!")#continue
-        #         r_bar = (self.reward_sums[p_state][p_action][s_q]/self.transition_counts[p_state][p_action][s_q])
-        #         prioriri1 = abs(r_bar + self.gamma * np.argmax(self.Q_sa[s_q]) - self.Q_sa[p_state,p_action])
-        #         if prioriri1 > self.priority_cutoff:
-        #             self.queue.put((-prioriri1,(p_state,p_action)))  
-        #print("Kaahrizmah, baby")
-        #print(counter)
-       
-        #works
+        # Update the Q-value like Dyna
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
-        p = np.abs(r+(self.gamma*np.max(self.Q_sa[s_next])-self.Q_sa[s][a]))
-        if p > self.priority_cutoff:
-            self.queue.put((-p,(s,a)))
+        # Compute the priority of the state
+        prioriri = np.abs(r+(self.gamma*np.max(self.Q_sa[s_next])-self.Q_sa[s,a]))
+        if prioriri > self.priority_cutoff:
+            self.queue.put((-prioriri,(s,a)))
         
         for k in range(n_planning_updates):
             if self.queue.empty():
                 break
             _, (s, a) = self.queue.get()
             prob_trans= self.transition_counts[s][a] / (np.sum(self.transition_counts[s][a]))
-            s_next = np.random.choice(self.n_states, p=prob_trans)
-            r_bar = self.reward_sums[s][a][s_next] / self.transition_counts[s][a][s_next]
-            r = r_bar
-            self.Q_sa[s][a] = self.Q_sa[s][a] + self.learning_rate*(r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s][a])
-            for s_bar, a_bar in zip(*np.nonzero(self.transition_counts[:,:,s])[:2]):
-                r_hat = self.reward_sums[s_bar][a_bar][s] / self.transition_counts[s_bar][a_bar][s]
-                r_bar = r_hat
-                p = np.abs(r_bar+(self.gamma*np.max(self.Q_sa[s])-self.Q_sa[s_bar][a_bar]))
-                if p > self.priority_cutoff:
-                    self.queue.put((-p,(s_bar,a_bar)))
+            s_next = np.argmax(prob_trans)
+            r_new = self.reward_sums[s][a][s_next] / self.transition_counts[s][a][s_next]
+            r = r_new
+            self.Q_sa[s,a] = self.Q_sa[s,a] + self.learning_rate*(r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
+            for previous_s, previous_a in zip(*np.nonzero(self.transition_counts[:,:,s])[:2]):
+                r_bar = self.reward_sums[previous_s][previous_a][s] / self.transition_counts[previous_s][previous_a][s]
+                r_new = r_bar
+                prioriri = np.abs(r_new+(self.gamma*np.max(self.Q_sa[s])-self.Q_sa[previous_s, previous_a]))
+                if prioriri > self.priority_cutoff:
+                    self.queue.put((-prioriri,(previous_s,previous_a)))
             
         
-
-       
-       
-
 
     def evaluate(self,eval_env,n_eval_episodes=30, max_episode_length=100):
         returns = []  # list to store the reward per episode
