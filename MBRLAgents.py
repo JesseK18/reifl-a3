@@ -37,7 +37,6 @@ class DynaAgent:
         # TO DO: Add Dyna update
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
-        #if not done:
         self.Q_sa[s, a] += self.learning_rate * (r + self.gamma * np.max(self.Q_sa[s_next]) - self.Q_sa[s,a])
 
         for k in range(n_planning_updates):
@@ -85,11 +84,9 @@ class PrioritizedSweepingAgent:
        
         self.Q_sa = np.zeros((n_states,n_actions))
         # TO DO: Initialize count tables, reward sum tables, priority queue
-        #self.means = np.zeros((n_states,n_actions))
         self.transition_counts = np.zeros((n_states,n_actions,n_states))
         self.reward_sums = np.zeros((n_states,n_actions,n_states))
         self.queue = PriorityQueue()
-        #self.PQ = PriorityQueue()
        
     def select_action(self, s, epsilon):
         # TO DO: Change this to e-greedy action selection
@@ -100,16 +97,6 @@ class PrioritizedSweepingAgent:
         return a
        
     def update(self,s,a,r,done,s_next,n_planning_updates):
-       
-        # TO DO: Add Prioritized Sweeping code
-        #counter = 0
-        # Helper code to work with the queue
-        # Put (s,a) on the queue with priority p (needs a minus since the queue pops the smallest priority first)
-        # self.queue.put((-p,(s,a)))
-        # Retrieve the top (s,a) from the queue
-        # _,(s,a) = self.queue.get() # get the top (s,a) for the queue
-        
-        # Update the Q-value like Dyna
         self.transition_counts[s][a][s_next] += 1
         self.reward_sums[s][a][s_next] += r
         # Compute the priority of the state
